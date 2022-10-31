@@ -1,0 +1,186 @@
+---
+format_version: '11'
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+project_type: react-native
+trigger_map:
+- pull_request_target_branch: "*"
+  pipeline: pipeline_buil_test_cross_platform
+pipelines:
+  pipeline_buil_test_cross_platform:
+    stages:
+    - stage_iOS_Android: {}
+stages:
+  stage_iOS_Android:
+    workflows:
+    - RN-iOS: {}
+    - RN-Android: {}
+workflows:
+  RN-Android:
+    steps:
+    - activate-ssh-key@4.1:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@6.2: {}
+    - avd-manager@1.2:
+        inputs:
+        - emulator_id: Pixel2API30
+        - api_level: '28'
+    - wait-for-android-emulator@1.0:
+        inputs:
+        - boot_timeout: '600'
+    - npm@1.1:
+        inputs:
+        - command: install
+    - script@1.2:
+        title: Install Detox CLI and RN CLI
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+
+            #npm install -g react-native-cli
+
+            npm install -g detox-cli
+    - script@1.2:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+
+            detox build -c android.emu.debug
+        title: Detox Build Android
+    - script@1.2:
+        title: Detox E2E Android Test
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+
+            detox test --configuration android.emu.debug --cleanup --record-logs all --record-videos all --take-screenshots all --loglevel trace
+    - script@1.2:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+
+            cp -R artifacts $BITRISE_DEPLOY_DIR
+        title: Publish Test Artifacts
+        is_always_run: true
+    - deploy-to-bitrise-io@2.1:
+        inputs:
+        - is_compress: 'true'
+    meta:
+      bitrise.io:
+        stack: osx-xcode-14.1.x
+        machine_type_id: g2.8core
+  RN-iOS:
+    steps:
+    - activate-ssh-key@4.1:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@6.2: {}
+    - npm@1.1:
+        inputs:
+        - command: install
+    - script@1.2:
+        title: Install Detox Pre-Requisites
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+
+            brew tap wix/brew
+
+            brew install applesimutils
+    - script@1.2:
+        title: Install Detox CLI and RN CLI
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+
+            #npm install -g react-native-cli
+
+            npm install -g detox-cli
+    - cocoapods-install@2:
+        inputs:
+        - podfile_path: ios/Podfile
+    - script@1.2:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+
+            detox build -c ios.sim.debug
+        title: Detox Build iOS
+    - script@1.2:
+        title: Detox E2E iOS Test
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+
+            detox test --configuration ios.sim.debug --record-logs all --record-videos all --take-screenshots all
+    - script@1.2:
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+
+            cp -R artifacts $BITRISE_DEPLOY_DIR
+        title: Publish Test Artifacts
+    - deploy-to-bitrise-io@2.1:
+        inputs:
+        - is_compress: 'true'
+meta:
+  bitrise.io:
+    stack: osx-xcode-14.1.x
+    machine_type_id: g2-m1.8core
+app:
+  envs:
+  - opts:
+      is_expand: false
+    WORKDIR: "."
+  - opts:
+      is_expand: false
+    PROJECT_LOCATION: android
+  - opts:
+      is_expand: false
+    MODULE: app
+  - opts:
+      is_expand: false
+    VARIANT: Debug
+  - opts:
+      is_expand: false
+    BITRISE_PROJECT_PATH: ios/BitriseRNDetox.xcworkspace
+  - opts:
+      is_expand: false
+    BITRISE_SCHEME: BitriseRNDetox
+  - opts:
+      is_expand: false
+    BITRISE_DISTRIBUTION_METHOD: development
