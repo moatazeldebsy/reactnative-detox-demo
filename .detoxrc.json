@@ -34,7 +34,7 @@
     "emulator": {
       "type": "android.emulator",
       "device": {
-        "avdName": "Pixel_XL_API_29"
+        "avdName": "Pixel2API30"
       }
     }
   },
