@@ -12,19 +12,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
-@LargeTest
 public class DetoxTest {
+
     @Rule
     public ActivityTestRule<MainActivity> mActivityRule = new ActivityTestRule<>(MainActivity.class, false, false);
 
     @Test
     public void runDetoxTests() {
-
         DetoxConfig detoxConfig = new DetoxConfig();
-        detoxConfig.idlePolicyConfig.masterTimeoutSec = 90;
-        detoxConfig.idlePolicyConfig.idleResourceTimeoutSec = 60;
-        detoxConfig.rnContextLoadTimeoutSec = (com.rndetox200.BuildConfig.DEBUG ? 180 : 60);
-
+        detoxConfig.idlePolicyConfig.masterTimeoutSec = 500;
+        detoxConfig.idlePolicyConfig.idleResourceTimeoutSec = 500;
+        detoxConfig.rnContextLoadTimeoutSec = 500;
         Detox.runTests(mActivityRule, detoxConfig);
     }
 }
