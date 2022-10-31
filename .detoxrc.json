@@ -35,7 +35,8 @@
       "type": "android.emulator",
       "device": {
         "avdName": "Pixel2API30"
-      }
+      },
+      "forceAdbInstall": true
     }
   },
   "configurations": {
