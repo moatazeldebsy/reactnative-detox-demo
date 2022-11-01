@@ -173,7 +173,7 @@ workflows:
             # debug log
             set -x
 
-            detox test --configuration ios.sim.debug --record-logs failing --record-videos failing --take-screenshots failing
+            detox test --configuration ios.sim.debug --record-logs all --record-videos all --take-screenshots all
     - script@1.2:
         inputs:
         - content: |-
