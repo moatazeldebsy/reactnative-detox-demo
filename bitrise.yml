@@ -119,6 +119,7 @@ workflows:
     - npm@1.1:
         inputs:
         - command: install
+        title: NPM Install
     - script@1.2:
         title: Install Detox Pre-Requisites
         inputs:
@@ -169,7 +170,7 @@ workflows:
             # debug log
             set -x
 
-            detox test --configuration ios.sim.debug --record-logs all --record-videos all --take-screenshots all
+            detox test --configuration ios.sim.debug --record-logs failing --record-videos failing --take-screenshots failing
     - script@1.2:
         inputs:
         - content: |-
